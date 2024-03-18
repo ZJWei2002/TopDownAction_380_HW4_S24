@@ -45,7 +45,7 @@ export default class AStarDemoScene extends Scene {
         navmesh.registerStrategy("astar", new AstarStrategy(navmesh));
         
         // TODO Set the navigation strategy to be A*
-        navmesh.setStrategy("direct");
+        navmesh.setStrategy("astar");
 
         // Create a dummy NPC
         this.npc = this.add.animatedSprite(NPCActor, "BlueEnemy", "primary")
@@ -68,7 +68,7 @@ export default class AStarDemoScene extends Scene {
     }
     
     /**
-     * Initializes the navmesh graph used by the NPCs in the HW4Scene. This method is a little buggy, and
+     * Initializes the navmesh graph used by the NPCs in the HW4Scene. This method is a little BUGGY, and
      * and it skips over some of the positions on the tilemap. If you can fix my navmesh generation algorithm,
      * go for it.
      * @author PeteyLumpkins
