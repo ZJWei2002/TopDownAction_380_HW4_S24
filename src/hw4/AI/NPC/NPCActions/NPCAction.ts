@@ -7,6 +7,13 @@ import Finder from "../../../GameSystems/Searching/Finder";
 import { TargetableEntity } from "../../../GameSystems/Targeting/TargetableEntity";
 import BasicFinder from "../../../GameSystems/Searching/BasicFinder";
 import NavigationPath from "../../../../Wolfie2D/Pathfinding/NavigationPath";
+import Item from "../../../GameSystems/ItemSystem/Item";
+import PlayerActor from "../../../Actors/PlayerActor";
+import Timer from "../../../../Wolfie2D/Timing/Timer";
+import IdleAction from "./GotoAction";
+import Idle from "../../Player/PlayerStates/Idle";
+import BasicTargetable from "../../../GameSystems/Targeting/BasicTargetable";
+import UseHealthpack from "./UseHealthpack";
 
 /**
  * An abstract GoapAction for an NPC. All NPC actions consist of doing three things:
@@ -24,6 +31,10 @@ export default abstract class NPCAction extends GoapAction {
     protected parent: NPCBehavior;
     protected actor: NPCActor;
 
+    protected isPerformed: boolean;
+    protected timer: Timer;
+
+
     // The targeting strategy used for this GotoAction - determines how the target is selected basically
     protected _targetFinder: Finder<TargetableEntity>;
     // The targets or Targetable entities 
@@ -39,6 +50,7 @@ export default abstract class NPCAction extends GoapAction {
         this.targets = [];
         this.target = null;
         this.path = null;
+        this.timer = new Timer(2500);
     }
 
     public onEnter(options: Record<string, any>): void {
@@ -47,15 +59,39 @@ export default abstract class NPCAction extends GoapAction {
 
         // If we found a target, set the NPCs target to the target and find a path to the target
         if (this.target !== null) {
+            this.isPerformed = false;
             // Set the actors current target to be the target for this action
             this.actor.setTarget(this.target);
             // Construct a path from the actor to the target
+            if(this.actor.atTarget() && this instanceof IdleAction) {
+                return;
+            }
             this.path = this.actor.getPath(this.actor.position, this.target.position);
         }
     }
 
     public update(deltaT: number): void {
-        // TODO get the NPCs to move on their paths
+        // TODO get the NPCs to move on their paths - done
+        if(this.path === null) {
+            return;
+        }
+        // if target has been perpformed by other nodes, get another
+        if((<Item>this.target).inventory !== null && this.target instanceof(Item)) {
+            this.target = this.targetFinder.find(this.targets);
+            this.actor.setTarget(this.target);
+            this.path = this.actor.getPath(this.actor.position, this.target.position);
+        }
+        // update the path to the target
+        if((this.target instanceof NPCActor || this.target instanceof PlayerActor) && this.timer.isStopped()) {
+            this.path = null;
+            this.path = this.actor.getPath(this.actor.position, this.target.position);
+            this.timer.start();
+        }
+        this.actor.moveOnPath(1, this.path);
+        if(this.path.isDone() && this.isPerformed === false ) {
+            this.isPerformed = true;
+            this.performAction(this.target);
+        }
     }
 
     public abstract performAction(target: TargetableEntity): void;

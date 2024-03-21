@@ -97,7 +97,7 @@ export default class AstarStrategy extends NavPathStrat {
             }
         }
 
-        // push path to the stack
+        // push the path to the stack
         v = end;
         while(pre[v] !== start) {
             v = pre[v];
@@ -107,8 +107,8 @@ export default class AstarStrategy extends NavPathStrat {
         return new NavigationPath(pathStack);
     }
 
-    getHValue(to: Vec2, from: Vec2): number {
-        return ((Math.abs(to.x - from.x) + Math.abs(to.y - from.y)) / 8) * 10;
+    getHValue(v1: Vec2, v2: Vec2): number {
+        return ((Math.abs(v1.x - v2.x) + Math.abs(v1.y - v2.y)) / 8) * 10;
     }
     
 }
